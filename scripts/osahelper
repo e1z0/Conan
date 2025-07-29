@@ -1,0 +1,81 @@
+#!/usr/bin/env zsh
+
+sshargs="-o StrictHostKeyChecking=no"
+wait=1
+
+# declare an associative array
+typeset -A opts
+
+# loop over all arguments
+while [[ $# -gt 0 ]]; do
+  arg=$1
+
+  if [[ $arg == --* ]]; then
+    # strip leading “--”
+    key=${arg#--}
+
+    if [[ $key == *=* ]]; then
+      # form: --foo=bar
+      k=${key%%=*}
+      v=${key#*=}
+      opts[$k]=$v
+      shift
+    else
+      # form: --foo bar   OR  bare --foo
+      if [[ -n $2 && $2 != --* ]]; then
+        opts[$key]=$2
+        shift 2
+      else
+        opts[$key]=true
+        shift
+      fi
+    fi
+  else
+    # not an --option; skip or collect as positional if desired
+    shift
+  fi
+done
+
+# DEBUG
+# now iterate over everything you found:
+#for name in ${(k)opts}; do
+#  print "Option: --$name → ${opts[$name]}"
+#done
+#echo "All params: ${opts}"
+
+# empty cmdline
+cmdargs=""
+
+if (( ${+opts[password]} )); then
+cmdargs+=(sshpass -p "${opts[password]}")
+fi
+
+cmdargs+="ssh ${sshargs} ${opts[user]}@${opts[host]}"
+
+
+if (( ${+opts[client]} )); then
+client=${opts[client]}
+fi
+
+if (( ${+opts[port]} )); then
+cmdargs+=(-p "${opts[port]}")
+fi
+
+if (( ${+opts[privkey]} )); then
+cmdargs+=(-i "${opts[privkey]}")
+fi
+
+
+#echo "Final params: ${cmdargs}"
+
+if [ "$client" = "ssh" ]; then
+    echo "Executing: $cmdargs"
+    # open new Terminal window
+    osascript \
+    -e 'tell app "iTerm" to activate' \
+    -e 'tell application "iTerm" to tell current window to create tab with default profile' \
+    -e 'tell application "iTerm" to tell current session of current window to write text "clear && echo '"Connecting to $host..."' && '"$cmdargs"' ; sleep '"$wait"' ; exit"'
+    exit
+fi
+
+echo "No client paremeter specified!"

@@ -1,0 +1,10 @@
+release/
+conan
+.DS_Store
+debug.log
+conan-*
+macos_tests
+*.yml
+*.yml-bak
+linux-skeleton/appDir
+macdeployqtfix.log

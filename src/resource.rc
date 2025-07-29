@@ -1,0 +1,32 @@
+#include <winresrc.h>
+
+1 ICON "Icon.ico"
+
+1 VERSIONINFO
+FILEVERSION     0,1,0,393
+PRODUCTVERSION  0,1,0,393
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          0x4L
+FILETYPE        0x1L
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",      "e1z0"
+            VALUE "FileDescription",  "Conan - The Connection Manager"
+            VALUE "FileVersion",      "0.1.0.393"
+            VALUE "InternalName",     "Conan"
+            VALUE "LegalCopyright",   "Copyright (c) 2025 Justinas K"
+            VALUE "OriginalFilename", "conan-win.exe"
+            VALUE "ProductName",      "Conan"
+            VALUE "ProductVersion",   "0.1.0.393"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1252
+    END
+END

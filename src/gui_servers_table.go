@@ -232,12 +232,14 @@ func showServerTable() {
 		// Move each row
 		for i, row := range rows {
 			offset := 0
-			//targetRowOffset = targetRow
-			targetuuid = servers[targetRow].ID
-			if row < targetRow {
-				offset = i
+			// check if targetRow is valid
+			if targetRow >= 0 && targetRow < len(servers) {
+				targetuuid = servers[targetRow].ID
+				if row < targetRow {
+					offset = i
+				}
+				TableMoveRow(ServersListTable, row, targetRow+offset)
 			}
-			TableMoveRow(ServersListTable, row, targetRow+offset)
 		}
 
 		// save the aragement in servers file

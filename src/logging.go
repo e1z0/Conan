@@ -13,7 +13,11 @@ func initlog() {
 		log.Printf("Unable to retrieve home directory: %s\n", err)
 		return
 	}
+	// create directory if it does not exist
 	dir := filepath.Join(home, ".config", "conan")
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		os.MkdirAll(dir, 0755)
+	}
 
 	// Open the log file
 	file, err := os.OpenFile(dir+"/debug.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)

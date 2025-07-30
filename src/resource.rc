@@ -3,8 +3,8 @@
 1 ICON "Icon.ico"
 
 1 VERSIONINFO
-FILEVERSION     0,1,0,395
-PRODUCTVERSION  0,1,0,395
+FILEVERSION     0,1,0,396
+PRODUCTVERSION  0,1,0,396
 FILEFLAGSMASK   0x3fL
 FILEFLAGS       0x0L
 FILEOS          0x4L
@@ -17,12 +17,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "e1z0"
             VALUE "FileDescription",  "Conan - The Connection Manager"
-            VALUE "FileVersion",      "0.1.0.395"
+            VALUE "FileVersion",      "0.1.0.396"
             VALUE "InternalName",     "Conan"
             VALUE "LegalCopyright",   "Copyright (c) 2025 Justinas K"
             VALUE "OriginalFilename", "conan-win.exe"
             VALUE "ProductName",      "Conan"
-            VALUE "ProductVersion",   "0.1.0.395"
+            VALUE "ProductVersion",   "0.1.0.396"
         END
     END
     BLOCK "VarFileInfo"

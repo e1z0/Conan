@@ -14,16 +14,32 @@ Conan is designed for system administrators, network engineers, and developers w
 - 🔍 **Spotlight-style launcher** with fuzzy search
 - 🧠 **Protocol-aware connection manager**: supports `ssh`, `rdp`, `winbox`, and custom command formats
 - 📝 **Sticky notes** system (Markdown + metadata),
-- ☁️ **GitHub Gist sync** for note andsserver lists  (encrypted or plaintext)
-- 🔐 **YAML-based configuration**, supports categories, icons, and metadata
-- ⚙️ **Terminal embedding** (via external windon)
+- ☁️ **GitHub Gist sync** for note and server lists (encrypted or plaintext)
+- 🔐 **YAML-based server configuration**, supports tags and metadata
+- ⚙️ **Terminal embedding** (via external window)
 - 🪄 **Global hotkey support** to open launcher instantly
 - 🎛️ **Server manager GUI** to edit connections visually
-- 🧭 **Global hotkey support** to open launcher instantly
 - 🧑‍💻 **Terminal UI** (curses-based) for CLI access
 - 📦 Cross-platform builds: `.app`, `.exe`, AppImage
 
 ---
+
+## In action
+
+
+
+https://github.com/user-attachments/assets/a831d66d-5eb8-4249-b27e-bc823fb8bb13
+
+https://github.com/user-attachments/assets/655a52c1-c286-4b17-85ef-742619b538ed
+
+https://github.com/user-attachments/assets/420259d0-bd82-442d-a06b-c6acd48e0e06
+
+https://github.com/user-attachments/assets/9ce2b8c3-ead9-48d2-b07f-eda6cc150dec
+
+https://github.com/user-attachments/assets/df779dac-db6b-432e-8310-b0932f26ea5c
+
+https://github.com/user-attachments/assets/21d72cb7-cc47-40a3-8a53-13bf5d9064e0
+
 
 
 ## 🚀 Usage Overview
@@ -115,6 +131,10 @@ Read [Building.md](/doc/BUILDING.md)
 
 Read [Configuration.md](/doc/CONFIGURATION.md)
 
-# icons
+# 3rd party software/material used
 
-https://icon.kitchen
+* [Golang](https://go.dev)
+
+* [Qt 5 bindings for Go](https://github.com/mappu/miqt)
+* [Qt 5.15 – Native GUI toolkit](https://www.qt.io)
+* [Icons](https://icon.kitchen)

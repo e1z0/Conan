@@ -20,6 +20,7 @@ var welcome bool = false         // Welcome window flag
 var filteredServers []Server     // filtered servers
 var ymlfiles []string
 var sshConnectionClients = []string{"external"}
+var defaultYmlFilename = "servers.yml" // default yml file name when no other files are found
 
 // var enckey string
 var settings Settings

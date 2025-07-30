@@ -58,6 +58,19 @@ func firstStart() {
 				fmt.Printf("Unable to generate encryption key: %s\n", err)
 				return
 			}
+
+			// when first start and user does not have any yml files, we create the default yml file
+			if len(ymlfiles) == 0 {
+				// creatiing the default yml file
+				defaultYml := filepath.Join(env.configDir, defaultYmlFilename)
+				err = touchFile(defaultYml)
+				if err != nil {
+					fmt.Printf("Unable to create default yml file: %s\n", err)
+				} // else {
+				//	ymlfiles = append(ymlfiles, defaultYml)
+				//}
+			}
+
 			section.Key("enckey").SetValue(key)
 			err = cfg.SaveTo(env.settingsFile)
 			if err != nil {

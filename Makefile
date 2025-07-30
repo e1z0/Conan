@@ -97,7 +97,7 @@ build_docker_mac: docker_mac ## Cross platform docker based build for MacOS Appl
 
 # macOS Intel build (using docker cross compile)
 build_docker_mactel: docker_mactel ## Cross platform docker based build for MacOS Intel
-	docker run --rm --init -i -t --user $(UID):$(UID) \
+	docker run --rm --init -i --user $(UID):$(UID) \
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-e GOMODCACHE=/go/pkg/mod \
 		-v /home/devnull/.cache/go-build:/.cache/go-build \
@@ -116,7 +116,7 @@ build_docker_mactel: docker_mactel ## Cross platform docker based build for MacO
 
 # Windows x86_64 build (using docker cross compile)
 build_docker_win: docker_win embed_win ## Cross platform docker based build for Windows x64
-	docker run --rm --init -i -t --user $(UID):$(UID) \
+	docker run --rm --init -i --user $(UID):$(UID) \
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-e GOMODCACHE=/go/pkg/mod \
 		-v /home/devnull/.cache/go-build:/.cache/go-build \
@@ -184,7 +184,7 @@ release_mactel: ## Release build for MacOS Intel using docker
 		echo "File $(REL_MACINTEL_BIN) not found, skipping. You should run make build_mactel first"; \
 		exit 0; \
 	else \
-	docker run --rm --init -i -t --user $(UID):$(UID) \
+	docker run --rm --init -i --user $(UID):$(UID) \
 		-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 		-e GOMODCACHE=/go/pkg/mod \
 		-v /home/devnull/.cache/go-build:/.cache/go-build \
@@ -260,7 +260,7 @@ embed_generic: ## Embed generic QT resources such as icons from src/resources.qr
 embed_win: ## Embed Windows specific resources (such as version info, build etc...) from src/resource.rc.in 
 	@echo "Mingw embed resources"
 	sed -e "s/@VERSION_COMMA@/$(VERSION_COMMA)/g" -e "s/@VERSION_DOT@/$(VERSION_WIN)/g" $(SRC)/resource.rc.in > $(SRC)/resource.rc
-	docker run --rm --init -i -t --user $(UID):$(UID) \
+	docker run --rm --init -i --user $(UID):$(UID) \
 	-v ${HOME}/go/pkg/mod:/go/pkg/mod \
 	-e GOMODCACHE=/go/pkg/mod \
 	-v /home/devnull/.cache/go-build:/.cache/go-build \

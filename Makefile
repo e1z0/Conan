@@ -322,4 +322,4 @@ check-rel-dir:
 		echo "Directory $(REL_DIR) created."; \
 	fi
 
-.PHONY: release docker release_linux help build
+.PHONY: release docker build_linux release_linux help build build_docker_mactel build_docker_win

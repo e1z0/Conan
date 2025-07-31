@@ -22,10 +22,14 @@
 x ability to resize column positions in servers table window list -> NOT POSSIBLE AT THE TIME
 * on the second note window something strange happends, when clicking view mode, it sometimes bugs out and only in edit mode the text is visible
 * export note as pdf document
-* look at the https://github.com/andydotxyz/slydes special implementation of markdown reader, maybe we can rip the ideas off it
+* look at the https://github.com/andydotxyz/slydes special implementation of markdown reader, maybe we can brought some ideas off it
 * auto update ability
 * sticky note remember last position and size... to note itself, lol
 * update sticky note from the main notes window on the fly...
+
+* servers search table search for description also
+* in spotlight search, show the hosts description in small letters
+
 
 [X] after note deletion/creation in view mode, after switch modes from editor to view, the text becomes invisible
 [X] when everything is encrypted on startup, it does not request to delete remote gist note on note deletion...

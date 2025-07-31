@@ -7,30 +7,39 @@
 [X] port welcome dialog to QT
 [X] port notes to QT
 [X] port about window to QT
-* hotkey is already registered shows in windows
-* connect does not work on windows using putty as the client (builtin)
+?* hotkey is already registered shows in windows
 * change global icon on windows to represent conan
-[X] after deleting note, all notes become with folder icons, possible cause is nw.treeWidget.Refresh()
-* delete note window size and position from config file when note itself is deleted
+[X] ability to resize column positions in servers table window list
+[X] sticky note remember last position and size...
+[X] update sticky note from the main notes window on the fly...
+
+-- GENERAL IMPROVEMENTS
+
+[X] connect does not work on windows using putty as the client (builtin)
 [X] rearagement of the items via drag-drop in servers table window
 * ability to import excel (detect columns before importing and show binding to real data structure if available)
 * grouping when clicking on the columns in server table window
 * ability to set jump hosts for all servers in the yml, also ability for other servers to use these jumphosts (build list on server edit)
-
-* delete folder with subnotes from gist when deleting folder...
 * after rework in cmdline options --chgkey  does not work
-x ability to resize column positions in servers table window list -> NOT POSSIBLE AT THE TIME
-* on the second note window something strange happends, when clicking view mode, it sometimes bugs out and only in edit mode the text is visible
+* auto update ability
+
+-- NOTES IMPROVEMENTS
+
+[X] after deleting note, all notes become with folder icons, possible cause is nw.treeWidget.Refresh()
+* delete note window size and position from config file when note itself is deleted
+* delete folder with subnotes from gist when deleting folder...
 * export note as pdf document
 * look at the https://github.com/andydotxyz/slydes special implementation of markdown reader, maybe we can brought some ideas off it
-* auto update ability
-* sticky note remember last position and size... to note itself, lol
-* update sticky note from the main notes window on the fly...
 
-* servers search table search for description also
-* in spotlight search, show the hosts description in small letters
+-- LATEST IDEAS
 
+[X] servers search table search for description also
+[X] in spotlight search, show the hosts description in small letters
+[X] tray icon click should now show the spotlight search (windows)
 
+-- THE OLD ONES - before the public release
+
+[X] on the second note window something strange happends, when clicking view mode, it sometimes bugs out and only in edit mode the text is visible
 [X] after note deletion/creation in view mode, after switch modes from editor to view, the text becomes invisible
 [X] when everything is encrypted on startup, it does not request to delete remote gist note on note deletion...
 [X] command line switch which will import/export settings as in the GUI
@@ -41,7 +50,7 @@ x ability to resize column positions in servers table window list -> NOT POSSIBL
 [X] when updating servers from the servers window table update it globally (tray menu items also)
 [X] tighten integration with some terminal, maybe iterm2, ability to open new tab, or window navigation that ties all active sessions?
 [X] ping hotkey to ping all hosts on the list
-[X] fix on win32 Opening external: C:\Users\justi/.config/conan does not open program path
+[X] fix on win32 Opening external: C:\Users\e1z0/.config/conan does not open program path
 [X] implement auto launch gui mode when .exe detected
 [X] allow only single window of servers table
 [X] servers table search box, focus on text input, submit on enter, search dialog is invoked by hotkey CTRL+F or CMD+F (on mac)

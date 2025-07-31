@@ -32,6 +32,4 @@ func initlog() {
 		log.SetOutput(io.MultiWriter(file))
 	}
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	// Log something
-	log.Println("Log file initialized!")
 }

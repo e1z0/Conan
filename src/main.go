@@ -18,8 +18,7 @@ var debugging = "false"
 var lines string
 
 func main() {
-	fmt.Printf("%s v%s (c) 2025 by Justinas K (e1z0@icloud.com)\n", RepresentativeName, version)
-	printThreadID("main")
+	fmt.Printf("\n%s v%s (build: %s).\n\nCopyright (c) 2025 by Justinas K (e1z0@icloud.com)\n\n", RepresentativeName, version, build)
 
 	if env.os == "windows" {
 		gui, err := isWindowsGUI()
@@ -54,7 +53,6 @@ func runTUI() {
 
 func runGUI() {
 	log.Printf("Running GUI...\n")
-	printThreadID("runGUI")
 	trayIcon()
 	os.Exit(0)
 }

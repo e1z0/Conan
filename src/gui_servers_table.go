@@ -88,7 +88,8 @@ func searchTable(query string, startRow int) int {
 		s := servers[r]
 		if strings.Contains(strings.ToLower(s.Host), query) ||
 			strings.Contains(strings.ToLower(s.IP), query) ||
-			strings.Contains(strings.ToLower(s.User), query) {
+			strings.Contains(strings.ToLower(s.User), query) ||
+			strings.Contains(strings.ToLower(s.Description), query) {
 			return r
 		}
 	}

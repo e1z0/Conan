@@ -97,7 +97,6 @@ func showLogin(parent *qt.QWidget, onSuccess func()) {
 
 // creates basic objects and checks if the password is set
 func trayIcon() {
-	printThreadID("trayicon")
 	qtapp = qt.NewQApplication(os.Args)
 	qt.QCoreApplication_SetQuitLockEnabled(true)
 	qt.QGuiApplication_SetQuitOnLastWindowClosed(false)
@@ -223,6 +222,13 @@ func updateTrayMenu() {
 	icon := qt.NewQIcon2(pixmap)
 	tray.SetIcon(icon) // Use a real path or embed .png with rcc
 	tray.SetVisible(true)
+	tray.SetToolTip("Conan - Server Manager")
+	tray.OnActivated(func(reason qt.QSystemTrayIcon__ActivationReason) {
+		if reason == qt.QSystemTrayIcon__Trigger && env.os == "windows" {
+			log.Printf("Tray icon clicked, showing search window...\n")
+			showFuzzySearchWindow()
+		}
+	})
 
 	// -- Menu for tray icon --
 	menu := qt.NewQMenu(nil)

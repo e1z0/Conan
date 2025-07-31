@@ -15,6 +15,13 @@ var (
 	searchWindow  *qt.QWidget
 )
 
+type itemLabels struct {
+	host *qt.QLabel
+	desc *qt.QLabel
+}
+
+var labelRefs []*itemLabels
+
 func showFuzzySearchWindow() {
 	if searchWindow != nil {
 		searchWindow.Show()
@@ -106,7 +113,7 @@ func showFuzzySearchWindow() {
 	entry.OnReturnPressed(func() {
 		row := listWidget.CurrentRow()
 		if row >= 0 && row < len(filteredItems) {
-			log.Printf("Connecting to %s\n", filteredItems[row])
+			log.Printf("Connecting to %s\n", filteredItems[row].Host)
 			ConnectCommand(filteredItems[row])
 		}
 	})
@@ -115,7 +122,7 @@ func showFuzzySearchWindow() {
 	listWidget.OnItemActivated(func(item *qt.QListWidgetItem) {
 		row := listWidget.CurrentRow()
 		if row >= 0 && row < len(filteredItems) {
-			log.Printf("Connecting to %s\n", filteredItems[row])
+			log.Printf("Connecting to %s\n", filteredItems[row].Host)
 			ConnectCommand(filteredItems[row])
 		}
 		entry.SetFocus() // return focus to entry
@@ -123,6 +130,10 @@ func showFuzzySearchWindow() {
 
 	listWidget.OnItemClicked(func(item *qt.QListWidgetItem) {
 		entry.SetFocus()
+	})
+
+	listWidget.OnSelectionChanged(func(super func(selected *qt.QItemSelection, deselected *qt.QItemSelection), selected, deselected *qt.QItemSelection) {
+		updateSelectionColors()
 	})
 
 	listWidget.OnKeyPressEvent(func(super func(event *qt.QKeyEvent), event *qt.QKeyEvent) {
@@ -179,25 +190,68 @@ func updateFuzzyList(query string) {
 			}
 		}
 	}
+
+	labelRefs = nil // reset before refilling
+
 	for _, s := range filteredItems {
-		listWidget.AddItem(s.Host)
+		// Create a new empty QListWidgetItem
+		item := qt.NewQListWidgetItem()
+		item.SetSizeHint(qt.NewQSize2(500, 56)) // Adjust height as needed
+
+		// Must use AddItemWithItem() in miqt instead of AddItem()
+		listWidget.AddItemWithItem(item)
+
+		// Create QWidget to embed
+		widget := qt.NewQWidget(nil)
+		layout := qt.NewQVBoxLayout(nil)
+		layout.SetContentsMargins(10, 6, 10, 6)
+		layout.SetSpacing(2) // spacing between host and description
+
+		// Host label (bold, larger font)
+		hostLabel := qt.NewQLabel3(s.Host)
+		hostFont := qt.NewQFont()
+		hostFont.SetPointSize(16)
+		hostFont.SetBold(true)
+		hostLabel.SetFont(hostFont)
+		hostLabel.SetStyleSheet("color: black")
+
+		// Description label (smaller, gray)
+		descLabel := qt.NewQLabel3(s.Description)
+		descFont := qt.NewQFont()
+		descFont.SetPointSize(12)
+		descLabel.SetFont(descFont)
+		descLabel.SetStyleSheet("color: #555555") // darker gray
+
+		layout.AddWidget(hostLabel.QWidget)
+		layout.AddWidget(descLabel.QWidget)
+		widget.SetLayout(layout.QLayout)
+
+		// Associate the custom widget with the item
+		listWidget.SetItemWidget(item, widget)
+		// Save label pointers for later selection handling
+		labelRefs = append(labelRefs, &itemLabels{
+			host: hostLabel,
+			desc: descLabel,
+		})
 	}
 	if len(filteredItems) > 0 {
 		listWidget.SetCurrentRow(0)
 	}
+	updateSelectionColors() // <<<< manually apply correct styles
 }
 
-func onSubmitFuzzyList() {
-	row := listWidget.CurrentRow()
-	if row >= 0 && row < len(filteredItems) {
-		go ClientConnect(filteredItems[row])
-		searchWindow.Hide()
-	}
-}
-
-func onSelectFuzzyList(row int) {
-	if row >= 0 && row < len(filteredItems) {
-		go ClientConnect(filteredItems[row])
-		searchWindow.Hide()
+func updateSelectionColors() {
+	for i := 0; i < listWidget.Count(); i++ {
+		if i >= len(labelRefs) {
+			continue
+		}
+		labels := labelRefs[i]
+		if listWidget.IsItemSelected(listWidget.Item(i)) {
+			labels.host.SetStyleSheet("color: white")
+			labels.desc.SetStyleSheet("color: white")
+		} else {
+			labels.host.SetStyleSheet("color: black")
+			labels.desc.SetStyleSheet("color: #555555")
+		}
 	}
 }

@@ -127,6 +127,7 @@ build_docker_win: docker_win embed_win ## Cross platform docker based build for 
 		$(WINDOCKERIMAGE) \
 		go build -ldflags "-X main.version=${VERSION} \
 		-X main.build=${BUILD} \
+		-X main.lines=$(LINES) \
 		-X main.debugging=false \
 		-s -w -H windowsgui" --tags=windowsqtstatic -o $(REL_WINDOWS_BIN) ./src/
 	@if [ -e $(SRC)/resource.syso ]; then \

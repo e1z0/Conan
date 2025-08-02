@@ -33,6 +33,9 @@
 
 -- LATEST IDEAS
 
+* Some notes becomes unencrypted in .history folder after push/pull sync, need investigation
+* The resize bar on notes window should save the position
+* Paste text into notes as plain text, not as the rich media type
 [X] servers search table search for description also
 [X] in spotlight search, show the hosts description in small letters
 [X] tray icon click should now show the spotlight search (windows)

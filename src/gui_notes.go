@@ -101,6 +101,14 @@ func (nw *NoteWindowQt) initUI() {
 
 	// --- Editor & Viewer
 	nw.editor = qt.NewQTextEdit(nil)
+	nw.editor.OnInsertFromMimeData(func(super func(source *qt.QMimeData), source *qt.QMimeData) {
+		if source.HasText() {
+			nw.editor.InsertPlainText(source.Text())
+			return
+		}
+		super(source)
+	})
+
 	nw.viewer = qt.NewQTextBrowser(nil)
 	nw.editor.SetVisible(false)
 	nw.viewer.SetVisible(true)

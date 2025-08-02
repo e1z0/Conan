@@ -109,8 +109,17 @@ func (s *NoteService) Save(n *Note) error {
 	if err := os.MkdirAll(snapDir, 0755); err != nil {
 		return err
 	}
+
+	// update history
 	ts := time.Now().Format("20060102-150405") + ".md"
-	ioutil.WriteFile(filepath.Join(snapDir, ts), n.Raw, 0644)
+	histout, err := renderYAMLFrontMatter(n.Meta, n.Body)
+	if err != nil {
+		return err
+	}
+	histout = s.maybeEncrypt(histout)
+	if err := ioutil.WriteFile(filepath.Join(snapDir, ts), histout, 0644); err != nil {
+		return err
+	}
 
 	// update metadata timestamp
 	n.Meta.Updated = time.Now().UTC()

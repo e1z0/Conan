@@ -5,7 +5,6 @@ package main
 */
 
 import (
-	"encoding/base64"
 	"log"
 	"os"
 	"path/filepath"
@@ -195,21 +194,17 @@ func (nw *NoteWindowQt) initUI() {
 
 	splitter := qt.NewQSplitter3(qt.Horizontal)
 
-	cfg, cfgerr := IniLoadMemory()
-
+	// debounce
 	splitterSaveTimer := qt.NewQTimer()
 	splitterSaveTimer.SetSingleShot(true)
 	splitterSaveTimer.OnTimeout(func() {
 		log.Printf("Saving splitter state")
-		if cfgerr == nil {
-			b64 := base64.StdEncoding.EncodeToString(splitter.SaveState())
-			cfg.Section("Window-" + filepath.Base(nw.service.NotesDir)).Key("splitter").SetValue(b64)
-			SaveInitFile(cfg)
-		}
+		// save splitter state to settings
+		Store.Set("Window-"+filepath.Base(nw.service.NotesDir), "splitter", splitter.SaveState())
 	})
 
 	splitter.OnSplitterMoved(func(pos, index int) {
-		log.Printf("Splitter moved: pos=%d, index=%d\n", pos, index)
+		//log.Printf("Splitter moved: pos=%d, index=%d\n", pos, index)
 		splitterSaveTimer.Start(800)
 	})
 
@@ -252,13 +247,10 @@ func (nw *NoteWindowQt) initUI() {
 	mainLayout.SetSpacing(0)                  // Optional: remove spacing between widgets
 	nw.win.SetLayout(mainLayout.QLayout)
 
-	if cfgerr == nil {
-		b64 := cfg.Section("Window-" + filepath.Base(nw.service.NotesDir)).Key("splitter").String()
-		state, err := base64.StdEncoding.DecodeString(b64)
-		if err == nil {
-			ok := splitter.RestoreState(state)
-			log.Printf("Restoring splitter state: success=%v", ok)
-		}
+	data, err := Store.GetBytes("Window-"+filepath.Base(nw.service.NotesDir), "splitter")
+	if err == nil {
+		ok := splitter.RestoreState(data)
+		log.Printf("Restoring splitter state: success=%v", ok)
 	}
 
 	nw.win.Show()

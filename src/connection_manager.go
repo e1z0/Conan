@@ -148,6 +148,8 @@ func ClientConnect(srv Server) {
 	case "SSH":
 		if settings.SSHClient == "putty" {
 			sshConnectPutty(srv)
+		} else if settings.SSHClient == "iTerm" {
+			sshConnectIterm(srv)
 		} else {
 			ConnectCommand(srv, "SSHCommand")
 		}

@@ -5,6 +5,7 @@ package main
 */
 
 import (
+	"encoding/base64"
 	"log"
 	"os"
 	"path/filepath"
@@ -193,6 +194,25 @@ func (nw *NoteWindowQt) initUI() {
 	addToolBtn(pullIcon, "Download notes from the remote server (sync pull)", func() { nw.pullSyncQt() })
 
 	splitter := qt.NewQSplitter3(qt.Horizontal)
+
+	cfg, cfgerr := IniLoadMemory()
+
+	splitterSaveTimer := qt.NewQTimer()
+	splitterSaveTimer.SetSingleShot(true)
+	splitterSaveTimer.OnTimeout(func() {
+		log.Printf("Saving splitter state")
+		if cfgerr == nil {
+			b64 := base64.StdEncoding.EncodeToString(splitter.SaveState())
+			cfg.Section("Window-" + filepath.Base(nw.service.NotesDir)).Key("splitter").SetValue(b64)
+			SaveInitFile(cfg)
+		}
+	})
+
+	splitter.OnSplitterMoved(func(pos, index int) {
+		log.Printf("Splitter moved: pos=%d, index=%d\n", pos, index)
+		splitterSaveTimer.Start(800)
+	})
+
 	//nw.treeWidget.QWidget.SetFixedWidth(200)
 	//	SetMinimumWidth(200) // Try 350, or whatever you like
 	nw.treeWidget.QWidget.SetSizePolicy2(qt.QSizePolicy__Expanding, qt.QSizePolicy__Expanding)
@@ -231,6 +251,15 @@ func (nw *NoteWindowQt) initUI() {
 	mainLayout.SetContentsMargins(0, 0, 0, 0) // Remove all space around
 	mainLayout.SetSpacing(0)                  // Optional: remove spacing between widgets
 	nw.win.SetLayout(mainLayout.QLayout)
+
+	if cfgerr == nil {
+		b64 := cfg.Section("Window-" + filepath.Base(nw.service.NotesDir)).Key("splitter").String()
+		state, err := base64.StdEncoding.DecodeString(b64)
+		if err == nil {
+			ok := splitter.RestoreState(state)
+			log.Printf("Restoring splitter state: success=%v", ok)
+		}
+	}
 
 	nw.win.Show()
 	nw.win.Raise()

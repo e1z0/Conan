@@ -2,12 +2,10 @@ package main
 
 import (
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/mappu/miqt/qt"
-	"gopkg.in/ini.v1"
 )
 
 type StickyWindowQt struct {
@@ -57,6 +55,12 @@ func (sm *StickyManagerQt) Refresh() {
 			label.SetMarkdown(string(note.Body))
 			label.SetReadOnly(true)
 			label.SetLineWrapMode(qt.QTextEdit__WidgetWidth)
+			label.SetOpenLinks(false)
+			label.SetOpenExternalLinks(false)
+
+			label.OnAnchorClicked(func(url *qt.QUrl) {
+				qt.QDesktopServices_OpenUrl(url)
+			})
 
 			if sw, ok := sm.windows[rel]; ok {
 				log.Printf("refreshing existing %s", rel)
@@ -106,83 +110,24 @@ func (sm *StickyManagerQt) Refresh() {
 
 				// save settings
 				saveStickyWindowGeometry := func() {
-					var (
-						cfg *ini.File
-						err error
-					)
-					encrypted, err := IsEncryptedINI(env.settingsFile)
-					if err != nil {
-						log.Printf("Unable to determine if settings file is encrypted %s\n", err)
-						return
-					}
-					if settings.DecryptPassword != "" {
-						cfg, err = LoadEncryptedINI(env.settingsFile, settings.DecryptPassword)
-						if err != nil {
-							log.Printf("Unable to load encrypted settings file %s\n", err)
-						}
-					} else {
-						if encrypted {
-							log.Printf("Settings file is encrypted, needs to request user's password\n")
-							return
-						}
-						cfg, err = ini.Load(env.settingsFile)
-						if err != nil {
-							log.Printf("Failed to read settings file: %s\n", err)
-							return
-						}
-
-					}
 					secName := "Sticky " + rel
-					section := cfg.Section(secName)
-					pos := win.Pos()
-					size := win.Size()
-					section.Key("x").SetValue(strconv.Itoa(pos.X()))
-					section.Key("y").SetValue(strconv.Itoa(pos.Y()))
-					section.Key("width").SetValue(strconv.Itoa(size.Width()))
-					section.Key("height").SetValue(strconv.Itoa(size.Height()))
-					if encrypted {
-						SaveEncryptedINI(cfg, env.settingsFile, settings.DecryptPassword)
-					} else {
-						cfg.SaveTo(env.settingsFile) // Save INI file
-					}
+
+					Store.SetMany(secName, map[string]interface{}{
+						"x":      win.Pos().X(),
+						"y":      win.Pos().Y(),
+						"width":  win.Size().Width(),
+						"height": win.Size().Height(),
+					})
 				}
 
 				// load settings
-				var (
-					cfg *ini.File
-					err error
-				)
-				encrypted, err := IsEncryptedINI(env.settingsFile)
-				if err != nil {
-					log.Printf("Unable to determine if settings file is encrypted %s\n", err)
-					return
-				}
-				if settings.DecryptPassword != "" {
-					cfg, err = LoadEncryptedINI(env.settingsFile, settings.DecryptPassword)
-					if err != nil {
-						log.Printf("Unable to load encrypted settings file %s\n", err)
-					}
-				} else {
-					if encrypted {
-						log.Printf("Settings file is encrypted, needs to request user's password\n")
-						return
-					}
-					cfg, err = ini.Load(env.settingsFile)
-					if err != nil {
-						log.Printf("Failed to read settings file: %s\n", err)
-						return
-					}
-
-				}
-
 				load := func() {
 					secName := "Sticky " + rel
-					if cfg.HasSection(secName) {
-						section := cfg.Section(secName)
-						x, _ := section.Key("x").Int()
-						y, _ := section.Key("y").Int()
-						w, _ := section.Key("width").Int()
-						h, _ := section.Key("height").Int()
+					if Store.HasSection(secName) {
+						x, _ := Store.GetInt(secName, "x")
+						y, _ := Store.GetInt(secName, "y")
+						w, _ := Store.GetInt(secName, "width")
+						h, _ := Store.GetInt(secName, "height")
 
 						// avoid invalid sizes, this can cause a crash
 						if h > 10000 {
@@ -303,6 +248,14 @@ func (sm *StickyManagerQt) Refresh() {
 				label := qt.NewQTextBrowser(nil)
 				label.SetMarkdown(string(note.Body))
 				label.SetReadOnly(true)
+
+				label.SetOpenLinks(false)
+				label.SetOpenExternalLinks(false)
+
+				label.OnAnchorClicked(func(url *qt.QUrl) {
+					qt.QDesktopServices_OpenUrl(url)
+				})
+
 				label.SetLineWrapMode(qt.QTextEdit__WidgetWidth)
 				label.SetStyleSheet(`
 	QTextBrowser {

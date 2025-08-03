@@ -113,6 +113,13 @@ func (nw *NoteWindowQt) initUI() {
 	nw.editor.SetVisible(false)
 	nw.viewer.SetVisible(true)
 
+	nw.viewer.SetOpenLinks(false)
+	nw.viewer.SetOpenExternalLinks(false)
+
+	nw.viewer.OnAnchorClicked(func(url *qt.QUrl) {
+		qt.QDesktopServices_OpenUrl(url)
+	})
+
 	// default is viewmode
 	nw.viewMode = true
 

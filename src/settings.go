@@ -292,7 +292,7 @@ func loadSettings(passphrase string) {
 		fetchServersFromFiles()
 
 	}
-	if err := configInit(); err != nil {
+	if err := configInit(env.settingsFile); err != nil {
 		log.Printf("Failed to initialize config: %s\n", err)
 	}
 

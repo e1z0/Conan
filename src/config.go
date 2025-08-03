@@ -116,6 +116,41 @@ func (s *SettingsStore) Set(section, key string, value interface{}) error {
 	return s.save()
 }
 
+// setMany sets multiple keys in a section.
+/*
+config.Store.SetMany("Window-Notes", map[string]interface{}{
+	"Width":     800,
+	"Height":    600,
+	"Splitter":  splitter.SaveState(),
+	"DarkMode":  true,
+	"ZoomLevel": 1.2,
+})
+*/
+func (s *SettingsStore) SetMany(section string, values map[string]interface{}) error {
+	err := s.Reload()
+	if err != nil {
+		log.Printf("failed to reload settings file: %w", err)
+	}
+	sec := s.cfg.Section(section)
+	for key, val := range values {
+		switch v := val.(type) {
+		case string:
+			sec.Key(key).SetValue(v)
+		case bool:
+			sec.Key(key).SetValue(fmt.Sprintf("%v", v))
+		case int, int64, int32:
+			sec.Key(key).SetValue(fmt.Sprintf("%d", v))
+		case float64:
+			sec.Key(key).SetValue(fmt.Sprintf("%f", v))
+		case []byte:
+			sec.Key(key).SetValue(base64.StdEncoding.EncodeToString(v))
+		default:
+			sec.Key(key).SetValue(fmt.Sprintf("%v", v))
+		}
+	}
+	return s.save()
+}
+
 func (s *SettingsStore) GetString(section, key string) (string, error) {
 	s.Reload()
 	sec := s.cfg.Section(section)

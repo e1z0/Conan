@@ -48,12 +48,54 @@ func configInit() error {
 	return nil
 }
 
+func (s *SettingsStore) Reload() error {
+	encrypted, err := IsEncryptedINI(env.settingsFile)
+	if err != nil {
+		log.Printf("Unable to determine if settings file is encrypted %s\n", err)
+		return err
+	}
+	if encrypted && settings.DecryptPassword == "" {
+		return fmt.Errorf("settings file is encrypted, but no password provided")
+	}
+
+	diskCfg := &ini.File{}
+
+	if encrypted {
+		diskCfg, err = LoadEncryptedINI(env.settingsFile, settings.DecryptPassword)
+	} else {
+		diskCfg, err = ini.LooseLoad(env.settingsFile)
+	}
+	if err != nil {
+		return fmt.Errorf("failed to reload settings file: %w", err)
+	}
+
+	s.cfg = diskCfg
+	return nil
+}
+
 func (s *SettingsStore) save() error {
 	_ = os.MkdirAll(filepath.Dir(s.path), 0755)
-	return s.cfg.SaveTo(s.path)
+	encrypted, err := IsEncryptedINI(env.settingsFile)
+	if err != nil {
+		log.Printf("Unable to determine if settings file is encrypted %s\n", err)
+		return err
+	}
+	if encrypted && settings.DecryptPassword == "" {
+		return fmt.Errorf("settings file is encrypted, but no password provided")
+	}
+
+	if encrypted {
+		return SaveEncryptedINI(s.cfg, s.path, settings.DecryptPassword)
+	} else {
+		return s.cfg.SaveTo(s.path)
+	}
 }
 
 func (s *SettingsStore) Set(section, key string, value interface{}) error {
+	err := s.Reload()
+	if err != nil {
+		log.Printf("failed to reload settings file: %w", err)
+	}
 	sec := s.cfg.Section(section)
 	var val string
 	switch v := value.(type) {
@@ -75,6 +117,7 @@ func (s *SettingsStore) Set(section, key string, value interface{}) error {
 }
 
 func (s *SettingsStore) GetString(section, key string) (string, error) {
+	s.Reload()
 	sec := s.cfg.Section(section)
 	if !sec.HasKey(key) {
 		return "", fmt.Errorf("missing key: [%s]%s", section, key)
@@ -83,6 +126,7 @@ func (s *SettingsStore) GetString(section, key string) (string, error) {
 }
 
 func (s *SettingsStore) GetInt(section, key string) (int, error) {
+	s.Reload()
 	sec := s.cfg.Section(section)
 	if !sec.HasKey(key) {
 		return 0, fmt.Errorf("missing key: [%s]%s", section, key)
@@ -91,6 +135,7 @@ func (s *SettingsStore) GetInt(section, key string) (int, error) {
 }
 
 func (s *SettingsStore) GetBool(section, key string) (bool, error) {
+	s.Reload()
 	sec := s.cfg.Section(section)
 	if !sec.HasKey(key) {
 		return false, fmt.Errorf("missing key: [%s]%s", section, key)
@@ -99,6 +144,7 @@ func (s *SettingsStore) GetBool(section, key string) (bool, error) {
 }
 
 func (s *SettingsStore) GetFloat(section, key string) (float64, error) {
+	s.Reload()
 	sec := s.cfg.Section(section)
 	if !sec.HasKey(key) {
 		return 0, fmt.Errorf("missing key: [%s]%s", section, key)
@@ -107,6 +153,7 @@ func (s *SettingsStore) GetFloat(section, key string) (float64, error) {
 }
 
 func (s *SettingsStore) GetBytes(section, key string) ([]byte, error) {
+	s.Reload()
 	sec := s.cfg.Section(section)
 	if !sec.HasKey(key) {
 		return nil, fmt.Errorf("missing key: [%s]%s", section, key)

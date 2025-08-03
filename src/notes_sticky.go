@@ -140,7 +140,11 @@ func (sm *StickyManagerQt) Refresh() {
 					section.Key("y").SetValue(strconv.Itoa(pos.Y()))
 					section.Key("width").SetValue(strconv.Itoa(size.Width()))
 					section.Key("height").SetValue(strconv.Itoa(size.Height()))
-					cfg.SaveTo(env.settingsFile) // Save INI file
+					if encrypted {
+						SaveEncryptedINI(cfg, env.settingsFile, settings.DecryptPassword)
+					} else {
+						cfg.SaveTo(env.settingsFile) // Save INI file
+					}
 				}
 
 				// load settings

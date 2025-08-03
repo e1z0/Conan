@@ -39,6 +39,8 @@
 [X] servers search table search for description also
 [X] in spotlight search, show the hosts description in small letters
 [X] tray icon click should now show the spotlight search (windows)
+[X] written iTerm support for macOS as ssh client/terminal
+[X] servers table window on list key ENTER do connect to the selected host
 
 -- THE OLD ONES - before the public release
 

@@ -136,6 +136,48 @@ func InitializeEnvironment() {
 
 }
 
+// return ini file as object
+func IniLoadMemory() (*ini.File, error) {
+	cfg := ini.Empty()
+	encrypted, err := IsEncryptedINI(env.settingsFile)
+	if err != nil {
+		return cfg, err
+	}
+	if settings.DecryptPassword != "" {
+		cfg, err = LoadEncryptedINI(env.settingsFile, settings.DecryptPassword)
+		if err != nil {
+			return cfg, err
+		}
+	} else {
+		if encrypted {
+			return cfg, fmt.Errorf("settings file is encrypted, please provide a passphrase")
+		}
+		cfg, err = ini.Load(env.settingsFile)
+		if err != nil {
+			log.Printf("Failed to read settings file: %s\n", err)
+			return cfg, err
+		}
+
+	}
+	return cfg, nil
+}
+
+func SaveInitFile(cfg *ini.File) error {
+	encrypted, err := IsEncryptedINI(env.settingsFile)
+	if err != nil {
+		return err
+	}
+	if encrypted {
+		if err := SaveEncryptedINI(cfg, env.settingsFile, settings.DecryptPassword); err != nil {
+			return err
+		}
+	} else {
+		cfg.SaveTo(env.settingsFile)
+
+	}
+	return nil
+}
+
 func loadSettings(passphrase string) {
 	var (
 		cfg *ini.File
@@ -254,6 +296,10 @@ func loadSettings(passphrase string) {
 		}
 
 		if strings.Contains(section.Name(), "Sticky ") {
+			continue
+		}
+
+		if strings.Contains(section.Name(), "Window-") {
 			continue
 		}
 

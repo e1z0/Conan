@@ -272,6 +272,21 @@ func showServerTable() {
 		}
 	})
 
+	ServersListTable.OnKeyPressEvent(func(super func(event *qt.QKeyEvent), event *qt.QKeyEvent) {
+		switch event.Key() {
+		case int(qt.Key_Return), int(qt.Key_Enter):
+			currentRow := ServersListTable.CurrentRow()
+			if currentRow >= 0 {
+				// Call your function here to connect or act
+				selectedServer := servers[currentRow] // adapt if you have a filtered list
+				log.Printf("ENTER pressed, connecting to: %s\n", selectedServer.Host)
+				go ClientConnect(selectedServer)
+			}
+		default:
+			super(event) // Pass other key events to default handler
+		}
+	})
+
 	toolbar := qt.NewQToolBar(serverTableWindow)
 
 	// Helper to add button with icon, tooltip, and callback

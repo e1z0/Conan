@@ -21,6 +21,7 @@ var uiCmdChan = make(chan string)
 var Stickies = make(map[string]*StickyManagerQt)
 var GUIMODE bool
 var qtapp *qt.QApplication
+var globalIcon *qt.QIcon
 
 // Linux and other unsupported os implemenation under way
 func globalKeysAdd() {
@@ -44,6 +45,7 @@ func showLogin(parent *qt.QWidget, onSuccess func()) {
 	loginWin := qt.NewQDialog(parent)
 	loginWin.SetWindowTitle("Enter Password")
 	loginWin.SetModal(true)
+
 	loginWin.SetWindowFlags(qt.Dialog | qt.CustomizeWindowHint | qt.WindowTitleHint | qt.WindowCloseButtonHint)
 	icon := qt.NewQIcon4(":/Icon.png")
 	loginWin.SetWindowIcon(icon)
@@ -100,6 +102,12 @@ func trayIcon() {
 	qtapp = qt.NewQApplication(os.Args)
 	qt.QCoreApplication_SetQuitLockEnabled(true)
 	qt.QGuiApplication_SetQuitOnLastWindowClosed(false)
+
+	pixmap := qt.NewQPixmap()
+	pixmap.Load(":/Icon.png")
+	globalIcon = qt.NewQIcon2(pixmap)
+	qt.QApplication_SetWindowIcon(globalIcon)
+	qt.QGuiApplication_SetWindowIcon(globalIcon)
 
 	qtapp.OnLastWindowClosed(func() {
 		log.Printf("last window is closed\n")

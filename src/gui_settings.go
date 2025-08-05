@@ -47,6 +47,7 @@ func showSettingsWindow(parent *qt.QWidget, configPath string) {
 	// Main window
 	settingsWindow = qt.NewQDialog(parent)
 	settingsWindow.SetWindowTitle("Settings")
+	settingsWindow.SetWindowIcon(globalIcon)
 	settingsWindow.Resize(700, 600)
 
 	settingsWindow.OnCloseEvent(func(super func(event *qt.QCloseEvent), event *qt.QCloseEvent) {

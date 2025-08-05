@@ -41,6 +41,7 @@
 [X] tray icon click should now show the spotlight search (windows)
 [X] written iTerm support for macOS as ssh client/terminal
 [X] servers table window on list key ENTER do connect to the selected host
+* implement search notes and search in note functionality
 
 -- THE OLD ONES - before the public release
 

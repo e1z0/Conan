@@ -33,6 +33,7 @@ func showFuzzySearchWindow() {
 	}
 	searchWindow := qt.NewQWidget(nil)
 	searchWindow.SetWindowTitle("")
+	searchWindow.SetWindowIcon(globalIcon)
 	searchWindow.Resize(520, 340)
 
 	searchWindow.SetWindowFlags(qt.FramelessWindowHint | qt.WindowStaysOnTopHint | qt.Dialog)
@@ -46,9 +47,6 @@ func showFuzzySearchWindow() {
 	x := (screen.Width() - searchWindow.Width()) / 2
 	y := (screen.Height() - searchWindow.Height()) / 3
 	searchWindow.Move(x, y)
-
-	// Set always-on-top if you wish, comment out if error
-	//searchWindow.SetWindowFlags(searchWindow.WindowFlags() | qt.WindowStaysOnTopHint)
 
 	entry = qt.NewQLineEdit(nil)
 	entry.SetPlaceholderText("Type to search...")

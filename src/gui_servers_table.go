@@ -183,6 +183,7 @@ func showServerTable() {
 
 	serverTableWindow = qt.NewQWidget(nil)
 	serverTableWindow.SetWindowTitle("Servers Table")
+	serverTableWindow.SetWindowIcon(globalIcon)
 	serverTableWindow.Resize(1000, 600)
 	serverTableWindow.OnCloseEvent(func(super func(event *qt.QCloseEvent), event *qt.QCloseEvent) {
 		event.Ignore()

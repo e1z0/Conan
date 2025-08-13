@@ -42,6 +42,7 @@
 [X] written iTerm support for macOS as ssh client/terminal
 [X] servers table window on list key ENTER do connect to the selected host
 * implement search notes and search in note functionality
+* implement copy menu subitem with possibility to copy server host/ip/user/tags/description in servers table window
 
 -- THE OLD ONES - before the public release
 

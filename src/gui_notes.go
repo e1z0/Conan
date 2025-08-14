@@ -38,10 +38,19 @@ type NoteWindowQt struct {
 	gist          GistConfig
 	service       *NoteService
 	current       *Note
+	// search state
+	searchQuery      string
+	searchHits       []SearchHit
+	currentHitIndex  int
+	pendingHit       *SearchHit
+	highlightQTimer  *qt.QTimer
+	highlightRetries int
 }
 
 func ShowNotesWindowQt(app *qt.QApplication, notesDir string, gist GistConfig) {
-	key := filepath.Base(notesDir)
+	absDir, _ := filepath.Abs(notesDir)
+	key := filepath.Clean(absDir)
+
 	if win, ok := notesWindowsQt[key]; ok {
 		win.win.Show()
 		win.win.ActivateWindow()
@@ -161,13 +170,53 @@ func (nw *NoteWindowQt) initUI() {
 	// --- Toolbar
 	addNoteIcon := qt.NewQIcon4(":/icons/newnote.png")
 	addFolderIcon := qt.NewQIcon4(":/icons/newfolder.png")
+	searchIcon := qt.NewQIcon4(":/icons/search.png")
 	deleteIcon := qt.NewQIcon4(":/icons/delete.png")
 	saveIcon := qt.NewQIcon4(":/icons/save.png")
 	viewModeIcon := qt.NewQIcon4(":/icons/show-hide.png")
 	pushIcon := qt.NewQIcon4(":/icons/syncpush.png")
 	pullIcon := qt.NewQIcon4(":/icons/syncpull.png")
+	quitIcon := qt.NewQIcon4(":/icons/close.png")
 
 	toolbar := qt.NewQHBoxLayout2()
+
+	// --- Search box + hotkey
+	// Search hotkey
+	FindShortcut := qt.NewQShortcut2(qt.NewQKeySequence2("Ctrl+F"), nw.win.QWidget)
+	FindShortcut.OnActivated(nw.searchNotesQt)
+	FindNextShortcut := qt.NewQShortcut2(qt.NewQKeySequence2("Ctrl+N"), nw.win.QWidget)
+	FindNextShortcut.OnActivated(nw.gotoNextHit)
+
+	// GUI-thread timer for deferred highlight (no goroutines)
+	nw.highlightQTimer = qt.NewQTimer()
+	nw.highlightQTimer.SetInterval(50)
+	nw.highlightQTimer.SetSingleShot(false)
+	nw.highlightQTimer.OnTimeout(func() {
+		if nw.pendingHit == nil {
+			nw.highlightQTimer.Stop()
+			return
+		}
+		want := strings.ReplaceAll(nw.pendingHit.RelPath, "\\", "/")
+		have := strings.ReplaceAll(nw.selectedUID, "\\", "/")
+		if have != want {
+			nw.highlightRetries++
+			if nw.highlightRetries > 60 {
+				log.Printf("[notes] highlight timeout: want=%q have=%q", want, have)
+				nw.pendingHit = nil
+				nw.highlightQTimer.Stop()
+			}
+			return
+		}
+		h := *nw.pendingHit
+		nw.pendingHit = nil
+		nw.highlightQTimer.Stop()
+
+		if nw.viewMode {
+			nw.highlightInTextWidgetViewer(nw.searchQuery, h.Occurrence)
+		} else {
+			nw.highlightInTextWidgetEditor(nw.searchQuery, h.Occurrence)
+		}
+	})
 
 	// add button helper function
 	addToolBtn := func(icon *qt.QIcon, tooltip string, cb func()) {
@@ -193,11 +242,15 @@ func (nw *NoteWindowQt) initUI() {
 	// toolbar buttons
 	addToolBtn(addNoteIcon, "Add new note", func() { nw.doNewNoteQt() })
 	addToolBtn(addFolderIcon, "Add folder", func() { nw.doNewFolderQt() })
+	addToolBtn(searchIcon, "Search notes", func() { nw.searchNotesQt() })
 	addToolBtn(deleteIcon, "Delete folder or note", func() { nw.doDeleteQt() })
 	addToolBtn(saveIcon, "Save current note", func() { nw.saveNoteQt() })
 	addToolBtn(viewModeIcon, "View mode editor or viewer", func() { nw.toggleViewQt() })
 	addToolBtn(pushIcon, "Upload notes to the remote server (sync push)", func() { nw.pushSyncQt() })
 	addToolBtn(pullIcon, "Download notes from the remote server (sync pull)", func() { nw.pullSyncQt() })
+	addToolBtn(quitIcon, "Close notes window", func() {
+		nw.win.Close()
+	})
 
 	splitter := qt.NewQSplitter3(qt.Horizontal)
 
@@ -379,6 +432,156 @@ func (nw *NoteWindowQt) doNewFolderQt() {
 		}
 		nw.refreshTreeQt()
 	}
+}
+
+// startSearch indexes occurrences across all notes and jumps to the first hit.
+func (nw *NoteWindowQt) startSearch(q string) {
+	nw.searchQuery = q
+	nw.searchHits = nil
+	nw.currentHitIndex = -1
+	if q == "" {
+		return
+	}
+	hits, err := nw.service.SearchOccurrencesCI(q)
+
+	if err != nil || len(hits) == 0 {
+		return
+	}
+	nw.searchHits = hits
+	nw.gotoNextHit()
+}
+
+// gotoNextHit selects the next hit (Ctrl+N).
+func (nw *NoteWindowQt) gotoNextHit() {
+
+	if len(nw.searchHits) == 0 {
+		return
+	}
+	nw.currentHitIndex = (nw.currentHitIndex + 1) % len(nw.searchHits)
+	h := nw.searchHits[nw.currentHitIndex]
+	nw.openAndHighlight(h)
+}
+
+// openAndHighlight selects the note in the tree and highlights the hit.
+func (nw *NoteWindowQt) openAndHighlight(h SearchHit) {
+	if item := nw.findTreeItemByRelPath(h.RelPath); item != nil {
+		nw.treeWidget.SetCurrentItem(item)
+	} else {
+		log.Printf("[notes] tree item NOT found for %q (root=%q)", h.RelPath, nw.service.NotesDir)
+	}
+	nw.pendingHit = &SearchHit{RelPath: h.RelPath, Occurrence: h.Occurrence}
+	nw.highlightRetries = 0
+	nw.highlightQTimer.Start2()
+}
+
+// highlight in editor (QTextEdit) — manual selection to avoid QTextCharFormat queuing
+func (nw *NoteWindowQt) highlightInTextWidgetEditor(query string, occurrence int) {
+	if nw.editor == nil || query == "" {
+		return
+	}
+	cur := nw.editor.TextCursor()
+	cur.MovePosition3(qt.QTextCursor__Start, qt.QTextCursor__MoveAnchor, 1)
+	nw.editor.SetTextCursor(cur)
+
+	for i := 0; i <= occurrence; i++ {
+		if !nw.editor.Find3(query, 0) { // 0 flags => case-insensitive
+			return
+		}
+	}
+	nw.editor.SetFocus()
+}
+
+// highlight in viewer (QTextBrowser)
+func (nw *NoteWindowQt) highlightInTextWidgetViewer(query string, occurrence int) {
+	if nw.viewer == nil || query == "" {
+		return
+	}
+	cur := nw.viewer.TextCursor()
+	cur.MovePosition3(qt.QTextCursor__Start, qt.QTextCursor__MoveAnchor, 1)
+	nw.viewer.SetTextCursor(cur)
+
+	for i := 0; i <= occurrence; i++ {
+		if !nw.viewer.Find3(query, 0) { // 0 flags => case-insensitive
+			return
+		}
+	}
+	nw.viewer.SetFocus()
+}
+
+// findTreeItemByRelPath tries to locate a tree item by stored rel path.
+func (nw *NoteWindowQt) findTreeItemByRelPath(rel string) *qt.QTreeWidgetItem {
+	if nw.treeWidget == nil || rel == "" {
+		return nil
+	}
+	role := int(qt.UserRole)
+
+	getRel := func(it *qt.QTreeWidgetItem) string {
+		v := it.Data(0, role)
+		if v != nil && v.IsValid() {
+			return v.ToString()
+		}
+		return ""
+	}
+
+	var walk func(*qt.QTreeWidgetItem) *qt.QTreeWidgetItem
+	walk = func(p *qt.QTreeWidgetItem) *qt.QTreeWidgetItem {
+		for i := 0; i < p.ChildCount(); i++ {
+			ch := p.Child(i)
+			if getRel(ch) == rel {
+				return ch
+			}
+			if r := walk(ch); r != nil {
+				return r
+			}
+		}
+		return nil
+	}
+
+	for i := 0; i < nw.treeWidget.TopLevelItemCount(); i++ {
+		top := nw.treeWidget.TopLevelItem(i)
+		if getRel(top) == rel {
+			return top
+		}
+		if r := walk(top); r != nil {
+			return r
+		}
+	}
+	return nil
+}
+
+// searchNotesQt prompts the user for a search query and starts the search.
+func (nw *NoteWindowQt) searchNotesQt() {
+	dialog := qt.NewQDialog(nil)
+	dialog.SetWindowTitle("Find Notes")
+
+	layout := qt.NewQVBoxLayout(nil)
+	entry := qt.NewQLineEdit(nil)
+	entry.SetPlaceholderText("type to search notes...")
+	layout.AddWidget(entry.QWidget)
+
+	buttonBox := qt.NewQDialogButtonBox5(qt.QDialogButtonBox__Ok|qt.QDialogButtonBox__Cancel, qt.Horizontal)
+
+	layout.AddWidget(buttonBox.QWidget)
+
+	dialog.SetLayout(layout.QLayout)
+
+	// Handle OK/Cancel
+	buttonBox.OnAccepted(func() {
+		dialog.Accept()
+	})
+	buttonBox.OnRejected(func() {
+		dialog.Reject()
+	})
+
+	// Optional: pressing Enter in entry triggers OK
+	entry.OnReturnPressed(func() {
+		dialog.Accept()
+	})
+
+	if dialog.Exec() == int(qt.QDialog__Accepted) && entry.Text() != "" {
+		nw.startSearch(entry.Text())
+	}
+	dialog.Destroy()
 }
 
 func (nw *NoteWindowQt) doDeleteQt() {

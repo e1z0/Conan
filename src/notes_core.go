@@ -213,6 +213,79 @@ func (s *NoteService) DeleteNote(relID string) error {
 	return nil
 }
 
+// SearchHit identifies a specific occurrence of a query inside a note file.
+type SearchHit struct {
+	RelPath    string
+	Occurrence int // 0-based index of the match within that file
+}
+
+// SearchOccurrencesCI walks all notes (excluding history) and returns one
+// SearchHit per match (case-insensitive).
+func (s *NoteService) SearchOccurrencesCI(query string) ([]SearchHit, error) {
+	q := strings.ToLower(strings.TrimSpace(query))
+	if q == "" {
+		return nil, nil
+	}
+
+	dirFS := os.DirFS(s.NotesDir)
+	var hits []SearchHit
+	perFileCount := map[string]int{}
+
+	skipDir := func(rel string) bool {
+		rel = strings.TrimPrefix(rel, "./")
+		if rel == s.HistoryDir || strings.HasPrefix(rel, s.HistoryDir+"/") {
+			return true
+		}
+		if rel == ".git" || strings.HasPrefix(rel, ".git/") {
+			return true
+		}
+		return false
+	}
+
+	err := fs.WalkDir(dirFS, ".", func(rel string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			if skipDir(rel) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(rel, ".md") {
+			return nil
+		}
+
+		// Read raw file bytes, then decrypt if needed
+		b, rerr := fs.ReadFile(dirFS, rel)
+		if rerr != nil {
+			return nil
+		}
+		dec := s.maybeDecrypt(b)
+
+		// Search only within the body (what the editor/viewer shows)
+		_, body := stripYAMLFrontMatter(dec)
+		ltext := strings.ToLower(string(body))
+
+		idx := 0
+		for {
+			j := strings.Index(ltext[idx:], q)
+			if j < 0 {
+				break
+			}
+			occ := perFileCount[rel]
+			hits = append(hits, SearchHit{RelPath: rel, Occurrence: occ})
+			perFileCount[rel] = occ + 1
+			idx += j + len(q)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return hits, nil
+}
+
 // DeleteFromGist removes a single file (note) from the specified Gist.
 // - relID: relative path to note.
 // Returns an error if anything goes wrong.

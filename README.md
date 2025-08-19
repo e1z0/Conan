@@ -1,4 +1,4 @@
- # Conan – Cross-Platform Connection Manager
+# Conan – Cross-Platform Connection Manager
 
 **Conan** is a fast, minimal, and extensible **connection manager** built with **Go** and **Qt 5**. Also there is CLI interface with a rich curses-based UI.
 

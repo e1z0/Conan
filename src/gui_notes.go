@@ -38,7 +38,7 @@ type NoteWindowQt struct {
 	gist          GistConfig
 	service       *NoteService
 	current       *Note
-	// search state
+	// note search functionality
 	searchQuery      string
 	searchHits       []SearchHit
 	currentHitIndex  int

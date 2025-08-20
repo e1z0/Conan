@@ -532,6 +532,106 @@ func showServerTable() {
 			}
 		})
 
+		// ping selected server
+		pingAction := qt.NewQAction3(pingIcon, "Ping")
+		pingAction.SetToolTip("Ping this server to check availability")
+		pingAction.OnTriggered(func() {
+			row := ServersListTable.CurrentRow()
+			if row >= 0 && row < len(servers) {
+				// server row ping context menu item
+				log.Printf("servers table ping\n")
+				srv := servers[row]
+				// Ping the server
+				pinger, err := probing.NewPinger(srv.IP)
+				if err != nil {
+					log.Printf("Error creating pinger for %s: %s", srv.Host, err)
+					QTshowError(serverTableWindow, "Ping Error", fmt.Sprintf("Unable to ping %s: %s", srv.Host, err))
+					return
+				}
+				pinger.Count = 3                 // Number of pings
+				pinger.Timeout = 2 * time.Second // Timeout for each ping
+				pinger.OnFinish = func(stats *probing.Statistics) {
+					if stats.PacketsRecv > 0 {
+						log.Printf("Ping successful for %s (%s): %d packets received", srv.Host, srv.IP, stats.PacketsRecv)
+						QTshowInfo(serverTableWindow, "Ping Result", fmt.Sprintf("Ping to %s (%s) successful: %d packets received", srv.Host, srv.IP, stats.PacketsRecv))
+					} else {
+						log.Printf("Ping failed for %s (%s): no packets received", srv.Host, srv.IP)
+						QTshowError(serverTableWindow, "Ping Result", fmt.Sprintf("Ping to %s (%s) failed: no packets received", srv.Host, srv.IP))
+					}
+				}
+
+				log.Printf("Pinging %s (%s)...", srv.Host, srv.IP)
+				pinger.Run() // Start pinging
+			} else {
+				log.Printf("No server selected to ping")
+				QTshowError(serverTableWindow, "Ping Error", "No server selected to ping")
+			}
+		})
+
+		// submenu for copy server details
+		copyMenu := qt.NewQMenu4("Copy", menu.QWidget)
+		copyMenu.SetToolTip("Copy server details to clipboard")
+		// Copy server details action
+		copyAction := qt.NewQAction2("Copy details")
+		copyAction.SetToolTip("Copy server details to clipboard")
+		copyAction.OnTriggered(func() {
+			row := ServersListTable.CurrentRow()
+			if row >= 0 && row < len(servers) {
+				srv := servers[row]
+				// Copy server details to clipboard
+				details := fmt.Sprintf("Host: %s\nIP: %s\nUser: %s\nType: %s\nDescription: %s\nTags: %s\nSource: %s\nAvailability: %s",
+					srv.Host, srv.IP, srv.User, srv.Type, srv.Description, srv.Tags, srv.SourceName, srv.Availability)
+				qt.QGuiApplication_Clipboard().SetText2(details, qt.QClipboard__Clipboard)
+				log.Printf("Copied server details for %s to clipboard", srv.Host)
+			} else {
+				log.Printf("No server selected to copy details")
+			}
+		})
+		// copy server hostname to clipboard
+		copyHostAction := qt.NewQAction2("Copy Hostname")
+		copyHostAction.SetToolTip("Copy server hostname to clipboard")
+		copyHostAction.OnTriggered(func() {
+			row := ServersListTable.CurrentRow()
+			if row >= 0 && row < len(servers) {
+				srv := servers[row]
+				// Copy server hostname to clipboard
+				qt.QGuiApplication_Clipboard().SetText2(srv.Host, qt.QClipboard__Clipboard)
+				log.Printf("Copied server hostname %s to clipboard", srv.Host)
+			} else {
+				log.Printf("No server selected to copy hostname")
+			}
+		})
+		// copy server ip to clipboard
+		copyIPAction := qt.NewQAction2("Copy IP")
+		copyIPAction.SetToolTip("Copy server IP to clipboard")
+		copyIPAction.OnTriggered(func() {
+			row := ServersListTable.CurrentRow()
+			if row >= 0 && row < len(servers) {
+				srv := servers[row]
+				// Copy server IP to clipboard
+				qt.QGuiApplication_Clipboard().SetText2(srv.IP, qt.QClipboard__Clipboard)
+				log.Printf("Copied server IP %s to clipboard", srv.IP)
+			} else {
+				log.Printf("No server selected to copy IP")
+			}
+		})
+		// copy server description to clipboard
+		copyDescAction := qt.NewQAction2("Copy Description")
+		copyDescAction.SetToolTip("Copy server description to clipboard")
+		copyDescAction.OnTriggered(func() {
+			row := ServersListTable.CurrentRow()
+			if row >= 0 && row < len(servers) {
+				srv := servers[row]
+				// Copy server description to clipboard
+				qt.QGuiApplication_Clipboard().SetText2(srv.Description, qt.QClipboard__Clipboard)
+				log.Printf("Copied server description %s to clipboard", srv.Description)
+			} else {
+				log.Printf("No server selected to copy description")
+			}
+		})
+
+		copyMenu.AddActions([]*qt.QAction{copyAction, copyHostAction, copyIPAction, copyDescAction})
+
 		deleteAction := qt.NewQAction3(deleteIcon, "Delete")
 		deleteAction.SetToolTip("Delete this server")
 		deleteAction.OnTriggered(func() {
@@ -540,7 +640,8 @@ func showServerTable() {
 			deletefunc()
 		})
 
-		menu.AddActions([]*qt.QAction{connectAction, editAction})
+		menu.AddActions([]*qt.QAction{connectAction, editAction, pingAction})
+		menu.AddMenu(copyMenu)
 		menu.AddSeparator()
 		menu.AddActions([]*qt.QAction{deleteAction})
 		// launch context menu in the middle of row

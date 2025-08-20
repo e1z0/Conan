@@ -38,7 +38,7 @@ func sshConnectIterm(server Server) error {
 		args = append([]string{"sshpass", "-f", tmpFile.Name(), "ssh"}, args[1:]...)
 		// Schedule secure delete after a few seconds
 		go func(path string) {
-			time.Sleep(5 * time.Second)
+			time.Sleep(10 * time.Second)
 			os.Remove(path)
 		}(tmpFile.Name())
 	}

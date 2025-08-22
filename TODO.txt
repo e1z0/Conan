@@ -7,8 +7,8 @@
 [X] port welcome dialog to QT
 [X] port notes to QT
 [X] port about window to QT
-?* hotkey is already registered shows in windows
-* change global icon on windows to represent conan
+[X] hotkey is already registered shows in windows
+[X] change global icon on windows to represent conan
 [X] ability to resize column positions in servers table window list
 [X] sticky note remember last position and size...
 [X] update sticky note from the main notes window on the fly...
@@ -41,8 +41,9 @@
 [X] tray icon click should now show the spotlight search (windows)
 [X] written iTerm support for macOS as ssh client/terminal
 [X] servers table window on list key ENTER do connect to the selected host
-* implement search notes and search in note functionality
-* implement copy menu subitem with possibility to copy server host/ip/user/tags/description in servers table window
+[X] implement search notes and search in note functionality
+[X] implement copy menu subitem with possibility to copy server host/ip/user/tags/description in servers table window
+* fix ping per server functionality on windows
 
 -- THE OLD ONES - before the public release
 

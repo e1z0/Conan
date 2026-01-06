@@ -14,9 +14,9 @@ REL_MACOS_BIN := $(BINARY)-mac
 REL_WINDOWS_BIN := ${BINARY}-win.exe
 UID ?= $(shell id -u)
 GID ?= $(shell id -g)
-WINDOCKERIMAGE := win64-cross-go1.23-qt5.15-static:latest
-OSXINTELDOCKER := macos-cross-x86_64-sdk13.1-go1.23-qt5.15-dynamic:latest
-OSXARMDOCKER := macos-cross-aarch64-sdk14.5-go1.23-qt5.15-dynamic:latest
+WINDOCKERIMAGE := nulldevil/win64-cross-go1.23-qt5.15-static:latest
+OSXINTELDOCKER := nulldevil/macos-cross-x86_64-sdk13.1-go1.23-qt5.15-dynamic:latest
+OSXARMDOCKER := nulldevil/macos-cross-aarch64-sdk14.5-go1.23-qt5.15-dynamic:latest
 VERSION_WIN := $(VERSION).0.$(BUILD)
 VERSION_COMMA := $(shell echo $(VERSION_WIN) | tr . ,)
 

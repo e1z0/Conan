@@ -1,6 +1,6 @@
 package main
 
-//go:generate miqt-rcc -Input "src/resources.qrc" -OutputGo "resources.qrc.go" -OutputRcc "resources.qrc.rcc" -RccBinary "/opt/homebrew/Cellar/qt@5/5.15.16_2/bin/rcc"
+//go:generate miqt-rcc -Input "./src/resources.qrc" -OutputGo "resources.qrc.go" -OutputRcc "resources.qrc.rcc"
 
 import (
 	"embed"
